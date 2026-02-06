@@ -31,10 +31,16 @@ export default function App() {
   const [offers, setOffers] = useState<Offer[]>([])
   const [user, setUser] = useState<User | null>(null)
   const [userId, setUserId] = useState<number | null>(null)
+  const [initError, setInitError] = useState<string | null>(null)
 
   useEffect(() => {
     const initData = window.Telegram?.WebApp?.initData || ''
     window.Telegram?.WebApp?.ready()
+
+    if (!initData) {
+      setInitError('Відкрийте WebApp через кнопку в чаті, щоб авторизуватися.')
+      return
+    }
 
     fetch('/api/auth', { headers: { initData } })
       .then((res) => res.json())
@@ -68,6 +74,12 @@ export default function App() {
         <h1 className="text-2xl font-semibold">Casino WebApp</h1>
         <p className="text-sm text-slate-400">Ласкаво просимо до екосистеми бонусів.</p>
       </header>
+
+      {initError && (
+        <div className="mb-6 rounded-2xl bg-amber-500/10 border border-amber-400/30 p-4 text-sm text-amber-200">
+          {initError}
+        </div>
+      )}
 
       <nav className="flex gap-2 mb-6">
         {tabs.map((tab) => (

@@ -1,6 +1,6 @@
 import asyncio
 from aiogram import Bot, Dispatcher, F
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, ChatJoinRequest
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, ChatJoinRequest, WebAppInfo
 from aiogram.utils.markdown import hbold
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -53,6 +53,14 @@ def subscribe_keyboard(channels: list[Channel]) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
+def webapp_keyboard(webapp_url: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Відкрити казино", web_app=WebAppInfo(url=webapp_url))]
+        ]
+    )
+
+
 def register_handlers(dp: Dispatcher, session_factory) -> None:
     @dp.message(F.text.startswith("/start"))
     async def start_handler(message: Message):
@@ -70,7 +78,8 @@ def register_handlers(dp: Dispatcher, session_factory) -> None:
             )
             return
         await message.answer(
-            f"{hbold('Вітаємо!')} Відкривайте казино через WebApp.",
+            f"{hbold('Вітаємо!')} Відкривайте казино через кнопку нижче.",
+            reply_markup=webapp_keyboard(settings.webapp_url),
         )
 
     @dp.callback_query(F.data == "check_subs")
@@ -78,7 +87,10 @@ def register_handlers(dp: Dispatcher, session_factory) -> None:
         async with session_factory() as session:
             channels = await get_required_channels(session)
         if await has_all_subscriptions(callback.bot, callback.from_user.id, channels):
-            await callback.message.answer("Доступ відкрито! Відкривайте WebApp.")
+            await callback.message.answer(
+                "Доступ відкрито! Відкривайте WebApp через кнопку.",
+                reply_markup=webapp_keyboard(settings.webapp_url),
+            )
             await callback.answer()
             return
         await callback.answer("Ще не всі підписки виконані.", show_alert=True)
