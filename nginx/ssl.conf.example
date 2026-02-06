@@ -1,0 +1,32 @@
+# Приклад HTTPS-конфігурації (скопіюйте у nginx.conf або підключіть include)
+server {
+  listen 443 ssl;
+  server_name blacktime.uno;
+
+  ssl_certificate /etc/letsencrypt/live/blacktime.uno/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/blacktime.uno/privkey.pem;
+
+  location /api/ {
+    proxy_pass http://backend_upstream;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+  }
+
+  location /admin/ {
+    proxy_pass http://backend_upstream;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+  }
+
+  location /postback/ {
+    proxy_pass http://backend_upstream;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+  }
+
+  location / {
+    proxy_pass http://frontend_upstream/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+  }
+}
