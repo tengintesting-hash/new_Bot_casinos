@@ -1,10 +1,10 @@
 # Приклад HTTPS-конфігурації (скопіюйте у nginx.conf або підключіть include)
 server {
   listen 443 ssl;
-  server_name example.com;
+  server_name blacktime.uno;
 
-  ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
-  ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+  ssl_certificate /etc/letsencrypt/live/blacktime.uno/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/blacktime.uno/privkey.pem;
 
   location /api/ {
     proxy_pass http://backend_upstream;
