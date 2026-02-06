@@ -1,5 +1,6 @@
 import asyncio
 from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
 from app.config import settings
 from app.db import engine, Base, AsyncSessionLocal
 from app.handlers import register_handlers
@@ -10,7 +11,7 @@ async def main() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    bot = Bot(settings.bot_token, parse_mode="HTML")
+    bot = Bot(settings.bot_token, default=DefaultBotProperties(parse_mode="HTML"))
     dp = Dispatcher()
     register_handlers(dp, AsyncSessionLocal)
 

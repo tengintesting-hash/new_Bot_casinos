@@ -53,7 +53,9 @@ def subscribe_keyboard(channels: list[Channel]) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-def webapp_keyboard(webapp_url: str) -> InlineKeyboardMarkup:
+def webapp_keyboard(webapp_url: str) -> InlineKeyboardMarkup | None:
+    if not webapp_url.startswith("https://"):
+        return None
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="Відкрити казино", web_app=WebAppInfo(url=webapp_url))]
@@ -77,20 +79,32 @@ def register_handlers(dp: Dispatcher, session_factory) -> None:
                 reply_markup=subscribe_keyboard(channels),
             )
             return
-        await message.answer(
-            f"{hbold('Вітаємо!')} Відкривайте казино через кнопку нижче.",
-            reply_markup=webapp_keyboard(settings.webapp_url),
-        )
+        keyboard = webapp_keyboard(settings.webapp_url)
+        if keyboard:
+            await message.answer(
+                f"{hbold('Вітаємо!')} Відкривайте казино через кнопку нижче.",
+                reply_markup=keyboard,
+            )
+        else:
+            await message.answer(
+                f"{hbold('Вітаємо!')} Відкрийте казино за посиланням: {settings.webapp_url}",
+            )
 
     @dp.callback_query(F.data == "check_subs")
     async def check_subs_handler(callback):
         async with session_factory() as session:
             channels = await get_required_channels(session)
         if await has_all_subscriptions(callback.bot, callback.from_user.id, channels):
-            await callback.message.answer(
-                "Доступ відкрито! Відкривайте WebApp через кнопку.",
-                reply_markup=webapp_keyboard(settings.webapp_url),
-            )
+            keyboard = webapp_keyboard(settings.webapp_url)
+            if keyboard:
+                await callback.message.answer(
+                    "Доступ відкрито! Відкривайте WebApp через кнопку.",
+                    reply_markup=keyboard,
+                )
+            else:
+                await callback.message.answer(
+                    f"Доступ відкрито! Відкрийте WebApp за посиланням: {settings.webapp_url}",
+                )
             await callback.answer()
             return
         await callback.answer("Ще не всі підписки виконані.", show_alert=True)
